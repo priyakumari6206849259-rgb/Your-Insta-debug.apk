@@ -1,0 +1,133 @@
+name: Build & Release Debug APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Optional release tag (defaults to 'debug-latest' when run from a branch)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  build-debug-apk:
+    name: Build Your Insta Debug APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK & accept licenses
+        uses: android-actions/setup-android@v3
+
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses >/dev/null 2>&1 || true
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.3.1"
+
+      - name: Restore debug signing keystore
+        run: |
+          if [ -f "debug.keystore.base64" ]; then
+            tr -d '\r\n' < debug.keystore.base64 | base64 -d > debug.keystore
+            echo "Restored debug.keystore from debug.keystore.base64"
+          elif [ ! -f "debug.keystore" ]; then
+            keytool -genkeypair -v -keystore debug.keystore \
+              -storepass android -alias androiddebugkey -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+            echo "Generated fallback debug.keystore"
+          fi
+
+      - name: Configure optional build secrets (.env)
+        env:
+          ZEGO_APP_ID: ${{ secrets.ZEGO_APP_ID }}
+          ZEGO_APP_SIGN: ${{ secrets.ZEGO_APP_SIGN }}
+        run: |
+          if [ -n "$ZEGO_APP_ID" ] || [ -n "$ZEGO_APP_SIGN" ]; then
+            {
+              echo "ZEGO_APP_ID=${ZEGO_APP_ID:-0}"
+              echo "ZEGO_APP_SIGN=${ZEGO_APP_SIGN:-MY_ZEGO_APP_SIGN}"
+            } > .env
+            echo "Created .env from GitHub repository secrets"
+          else
+            echo "Using defaults from .env.example"
+          fi
+
+      - name: Build Debug APK
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Package APK & compute SHA-256
+        id: package_apk
+        run: |
+          APK_SOURCE="app/build/outputs/apk/debug/app-debug.apk"
+          if [ ! -f "$APK_SOURCE" ]; then
+            echo "Expected APK not found at $APK_SOURCE"
+            exit 1
+          fi
+          APK_OUT="app/build/outputs/apk/debug/Your-Insta-debug.apk"
+          cp "$APK_SOURCE" "$APK_OUT"
+          SHA256=$(sha256sum "$APK_OUT" | awk '{print $1}')
+          SIZE_MB=$(du -h "$APK_OUT" | awk '{print $1}')
+          echo "apk_path=$APK_OUT" >> "$GITHUB_OUTPUT"
+          echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
+          echo "size_mb=$SIZE_MB" >> "$GITHUB_OUTPUT"
+
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TARGET_TAG="${{ github.ref_name }}"
+          elif [ -n "${{ inputs.release_tag }}" ]; then
+            TARGET_TAG="${{ inputs.release_tag }}"
+          else
+            TARGET_TAG="debug-latest"
+          fi
+          echo "target_tag=$TARGET_TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Debug APK to GitHub Actions Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Your-Insta-debug-apk
+          path: ${{ steps.package_apk.outputs.apk_path }}
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Publish Debug APK to GitHub Releases
+        if: github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.package_apk.outputs.target_tag }}
+          name: "Your Insta Debug APK (${{ steps.package_apk.outputs.target_tag }})"
+          prerelease: false
+          make_latest: true
+          generate_release_notes: true
+          files: |
+            ${{ steps.package_apk.outputs.apk_path }}
+          body: |
+            Automated debug APK build for **Your Insta** (`com.aistudio.yourinsta.kqvxmr`).
+
+            - **Direct Download**: Download `Your-Insta-debug.apk` from the **Assets** section below.
+            - **Size**: `${{ steps.package_apk.outputs.size_mb }}`
+            - **SHA-256**: `${{ steps.package_apk.outputs.sha256 }}`
+            - **Commit**: `${{ github.sha }}`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

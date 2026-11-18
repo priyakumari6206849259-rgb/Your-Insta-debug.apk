@@ -1,0 +1,240 @@
+{
+  "entities": {
+    "PublicProfile": {
+      "title": "PublicProfile",
+      "description": "Public creator and user profile visible to signed-in users without PII.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "displayName": { "type": "string" },
+        "username": { "type": "string" },
+        "bio": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "discoverable": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "displayName", "username", "bio", "discoverable", "createdAt", "updatedAt"]
+    },
+    "PrivateAccount": {
+      "title": "PrivateAccount",
+      "description": "Owner-only private account information containing PII such as email.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "createdAt", "updatedAt"]
+    },
+    "VideoPost": {
+      "title": "VideoPost",
+      "description": "Short vertical reel or full horizontal YouTube-style video published by a creator.",
+      "type": "object",
+      "properties": {
+        "creatorId": { "type": "string" },
+        "creatorName": { "type": "string" },
+        "creatorUsername": { "type": "string" },
+        "creatorPhotoUrl": { "type": "string" },
+        "title": { "type": "string" },
+        "caption": { "type": "string" },
+        "videoUrl": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "videoType": { "type": "string", "enum": ["SHORT", "FULL"] },
+        "durationSec": { "type": "integer" },
+        "viewsCount": { "type": "integer" },
+        "published": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["creatorId", "creatorName", "creatorUsername", "title", "caption", "videoUrl", "videoType", "durationSec", "viewsCount", "published", "createdAt", "updatedAt"]
+    },
+    "StoryItem": {
+      "title": "StoryItem",
+      "description": "24-hour ephemeral photo or video story posted by a creator.",
+      "type": "object",
+      "properties": {
+        "creatorId": { "type": "string" },
+        "creatorName": { "type": "string" },
+        "creatorUsername": { "type": "string" },
+        "creatorPhotoUrl": { "type": "string" },
+        "mediaType": { "type": "string", "enum": ["IMAGE", "VIDEO"] },
+        "mediaUrl": { "type": "string" },
+        "caption": { "type": "string" },
+        "expiresAtEpochMs": { "type": "integer" },
+        "active": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["creatorId", "creatorName", "creatorUsername", "mediaType", "mediaUrl", "caption", "expiresAtEpochMs", "active", "createdAt"]
+    },
+    "LiveStream": {
+      "title": "LiveStream",
+      "description": "Active or ended live camera or gaming broadcast session hosted by a creator.",
+      "type": "object",
+      "properties": {
+        "hostId": { "type": "string" },
+        "hostName": { "type": "string" },
+        "hostUsername": { "type": "string" },
+        "hostPhotoUrl": { "type": "string" },
+        "title": { "type": "string" },
+        "streamUrl": { "type": "string" },
+        "streamMode": { "type": "string", "enum": ["CAMERA", "MOBILE_GAME_SCREEN", "PC_GAME_STREAM"] },
+        "gameTitle": { "type": "string" },
+        "agoraChannel": { "type": "string" },
+        "viewerCount": { "type": "integer" },
+        "live": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["hostId", "hostName", "hostUsername", "title", "viewerCount", "live", "createdAt", "updatedAt"]
+    },
+    "LiveComment": {
+      "title": "LiveComment",
+      "description": "Real-time chat comment sent inside a live stream.",
+      "type": "object",
+      "properties": {
+        "streamId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "senderPhotoUrl": { "type": "string" },
+        "text": { "type": "string" },
+        "visible": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["streamId", "senderId", "senderName", "text", "visible", "createdAt"]
+    },
+    "FollowEdge": {
+      "title": "FollowEdge",
+      "description": "Represents followerId following targetUserId.",
+      "type": "object",
+      "properties": {
+        "followerId": { "type": "string" },
+        "targetUserId": { "type": "string" },
+        "visible": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["followerId", "targetUserId", "visible", "createdAt"]
+    },
+    "SubscriptionEdge": {
+      "title": "SubscriptionEdge",
+      "description": "Represents subscriberId subscribing to creatorId.",
+      "type": "object",
+      "properties": {
+        "subscriberId": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "visible": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["subscriberId", "creatorId", "visible", "createdAt"]
+    },
+    "VideoLike": {
+      "title": "VideoLike",
+      "description": "Represents a user like on a video.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "videoId": { "type": "string" },
+        "visible": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "videoId", "visible", "createdAt"]
+    },
+    "ChatThread": {
+      "title": "ChatThread",
+      "description": "Direct message conversation between two signed-in users.",
+      "type": "object",
+      "properties": {
+        "participantIds": { "type": "array" },
+        "lastMessage": { "type": "string" },
+        "lastSenderId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["participantIds", "lastMessage", "lastSenderId", "createdAt", "updatedAt"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Individual real-time text message in a DM thread.",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "recipientId": { "type": "string" },
+        "participantIds": { "type": "array" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["senderId", "recipientId", "participantIds", "text", "createdAt"]
+    },
+    "WithdrawalRequest": {
+      "title": "WithdrawalRequest",
+      "description": "Creator payout withdrawal request with UPI ID or bank transfer details.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "amountUsd": { "type": "number" },
+        "payoutMethod": { "type": "string", "enum": ["UPI", "BANK_TRANSFER"] },
+        "accountHolderName": { "type": "string" },
+        "upiId": { "type": "string" },
+        "bankName": { "type": "string" },
+        "accountNumber": { "type": "string" },
+        "ifscCode": { "type": "string" },
+        "note": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "PROCESSING", "COMPLETED", "REJECTED"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "amountUsd", "payoutMethod", "accountHolderName", "status", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/public_profiles/{userId}": {
+      "schema": { "$ref": "#/entities/PublicProfile" },
+      "description": "Public creator profiles without PII."
+    },
+    "/users/{userId}/private/{docId}": {
+      "schema": { "$ref": "#/entities/PrivateAccount" },
+      "description": "Private owner-only user account details (email)."
+    },
+    "/videos/{videoId}": {
+      "schema": { "$ref": "#/entities/VideoPost" },
+      "description": "Published Shorts and Full Videos with view counts."
+    },
+    "/stories/{storyId}": {
+      "schema": { "$ref": "#/entities/StoryItem" },
+      "description": "24-hour expiring photo and video stories."
+    },
+    "/live_streams/{streamId}": {
+      "schema": { "$ref": "#/entities/LiveStream" },
+      "description": "Live streaming sessions."
+    },
+    "/live_streams/{streamId}/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/LiveComment" },
+      "description": "Real-time live stream comments."
+    },
+    "/follows/{followId}": {
+      "schema": { "$ref": "#/entities/FollowEdge" },
+      "description": "Follow relationships between users."
+    },
+    "/subscriptions/{subscriptionId}": {
+      "schema": { "$ref": "#/entities/SubscriptionEdge" },
+      "description": "Creator channel subscriptions."
+    },
+    "/video_likes/{likeId}": {
+      "schema": { "$ref": "#/entities/VideoLike" },
+      "description": "Video like records."
+    },
+    "/chat_threads/{threadId}": {
+      "schema": { "$ref": "#/entities/ChatThread" },
+      "description": "1-on-1 DM threads."
+    },
+    "/chat_threads/{threadId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/ChatMessage" },
+      "description": "Real-time DM messages inside a thread."
+    },
+    "/users/{userId}/withdrawal_requests/{requestId}": {
+      "schema": { "$ref": "#/entities/WithdrawalRequest" },
+      "description": "Owner-only creator payout and withdrawal requests."
+    }
+  }
+}

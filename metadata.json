@@ -1,0 +1,6 @@
+{
+  "name": "Your Insta",
+  "description": "Social media video and messaging Android app combining short vertical reels, long-form video streaming, user profiles, and real-time direct messaging with Firebase Auth and Firestore.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
